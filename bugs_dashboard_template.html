@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Bugs Cleanup Dashboard for Kolla</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.min.css">
+    <script>
+        $(function() {
+            $( "#tabs" ).tabs();
+        });
+    </script>
+    <style type="text/css">
+        .even {
+        background-color: #FFFACD;
+        }
+        .odd {
+        background-color: #E0FFFF;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Bugs Cleanup Dashboard for Kolla</h1>
+
+<div id="tabs">
+    <ul>
+        <li><a href="#tabRecent">Recent</a></li>
+        <li><a href="#tabUndecided">Undecided Importance</a></li>
+        <li><a href="#tabInconsistent">Inconsistent</a></li>
+        <li><a href="#tabFixCommitted">Fix Committed</a></li>
+        <li><a href="#tabIncomplete">Incomplete</a></li>
+        <li><a href="#tabIncompleteStale">Stale Incomplete</a></li>
+        <li><a href="#tabInProgressStale">Stale In Progress</a></li>
+        <li><a href="#tabPatch">Patch</a></li>
+        <li><a href="#tabWishlist">Old Wishlist</a></li>
+        <li><a href="#tabExpired">Expired</a></li>
+    </ul>
+    <div id="tabRecent">
+        <p>Task1: The list below shows the recently created bug reports.
+        </p>
+        <ol>
+            {% for b in recent_reports %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div id="tabUndecided">
+        <p>Task2: The list below shows the <code>confirmed</code> and
+            <code>triaged</code> bug reports
+           without an <code>importance</code>.
+        </p>
+        <ol>
+            {% for b in undecided_reports %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div id="tabInconsistent">
+        <p>Task3: The list below shows bug reports which are inconsistent.
+            Bugs with an assignee should be <code>In Progress</code>. Bugs
+            which are <code>In Progress</code> but do not have an assignee
+            should be set back to <code>confirmed</code> (or <code>new</code>).
+        </p>
+        <ol>
+            {% for b in inconsistent_reports %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div id="tabFixCommitted">
+        <p>Task3 b: The list below shows bug reports in the state
+            <code>Fix Committed</code>. Since the Mitaka cycle we use the
+            direct release model, which means those bug reports should have
+            <code>Fix Released</code>.
+        </p>
+        <ol>
+            {% for b in fix_committed %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div id="tabIncomplete">
+        <p>Task4 a: incomplete bugs with a response. The response should be
+            checked.
+        </p>
+        <ol>
+            {% for b in incomplete_response %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div id="tabIncompleteStale">
+        <p>Task4 b: The list below shows bug reports which have the status incomplete for more than 30 days and are therefore potentially stale.
+        </p>
+        <ol>
+            {% for b in stale_incomplete %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div id="tabInProgressStale">
+        <p>Task5: The list below shows bug reports which have the status
+            <code>in progress</code> for more than 14 days but do not have open
+            reviews and are therefore potentially stale.
+        </p>
+        <ol>
+            {% for b in stale_in_progress %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div id="tabPatch">
+        <p>Task6: The list below shows bug reports with a patch.
+        </p>
+        <ol>
+            {% for b in patched_reports %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div id="tabWishlist">
+        <p>Task9: The list below shows old wishlist bug reports
+        </p>
+        <ol>
+            {% for b in old_wishlist %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div id="tabExpired">
+        <p>The list below shows bug reports which got reported 18 months ago
+           and are therefore potentially expired. To remove a still valid bug
+           report from this list you can leave a comment like
+           <code>CONFIRMED FOR: RELEASE_NAME</code> (all caps) in that bug
+           report. For example for Newton this would be
+           <code>CONFIRMED FOR: NEWTON</code>.
+           This works also for the last stable releases.
+        </p>
+        <ol>
+            {% for b in expired_reports %}
+            <li class="{{ loop.cycle('odd', 'even') }}">
+                <a href="{{ b.link }}" target="_blank">{{ b.link }}</a>
+                {{ b.title }}
+                ({{ b.age }} days old)
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+
+<small>
+    <p>
+        This gets updated hourly. Last update: {{ last_update }}
+    </p>
+
+    <p>
+        Based on the <a href="https://github.com/markuszoeller/openstack/blob/master/scripts/launchpad/bugs_dashboard.py">bugs dashboard</a>, written by Markus Zoeller (markus_z).</a>
+    </p>
+
+    <p>
+        Provided by <a href="https://betacloud.io">Betacloud Solutions GmbH</a>.
+    </p>
+</small>
+
+</body>
+</html>

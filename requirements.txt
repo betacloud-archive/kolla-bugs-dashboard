@@ -1,0 +1,4 @@
+jinja2
+launchpadlib
+requests
+simplejson

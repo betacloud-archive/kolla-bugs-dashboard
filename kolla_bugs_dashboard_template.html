@@ -24,21 +24,28 @@
 
 <h1>Bugs cleanup dashboard for Kolla</h1>
 
+<p>
+    This dashboard includes bugs from the Launchpad projects
+    <a href="https://bugs.launchpad.net/kolla">kolla</a>,
+    <a href="https://bugs.launchpad.net/kolla-ansible">kolla-ansible</a>, and
+    <a href="https://bugs.launchpad.net/kolla-kubernetes">kolla-kubernetes</a>.
+</p>
+
 <div id="tabs">
     <ul>
-        <li><a href="#tabRecent">Recent</a></li>
-        <li><a href="#tabUndecided">Undecided Importance</a></li>
-        <li><a href="#tabInconsistent">Inconsistent</a></li>
-        <li><a href="#tabFixCommitted">Fix Committed</a></li>
-        <li><a href="#tabIncomplete">Incomplete</a></li>
-        <li><a href="#tabIncompleteStale">Stale Incomplete</a></li>
-        <li><a href="#tabInProgressStale">Stale In Progress</a></li>
-        <li><a href="#tabPatch">Patch</a></li>
-        <li><a href="#tabWishlist">Old Wishlist</a></li>
-        <li><a href="#tabExpired">Expired</a></li>
+        <li><small><a href="#tabRecent">Recent</a></small></li>
+        <li><small><a href="#tabUndecided">Undecided Importance</a></small></li>
+        <li><small><a href="#tabInconsistent">Inconsistent</a></small></li>
+        <li><small><a href="#tabFixCommitted">Fix Committed</a></small></li>
+        <li><small><a href="#tabIncomplete">Incomplete</a></small></li>
+        <li><small><a href="#tabIncompleteStale">Stale Incomplete</a></small></li>
+        <li><small><a href="#tabInProgressStale">Stale In Progress</a></small></li>
+        <li><small><a href="#tabPatch">Patch</a></small></li>
+        <li><small><a href="#tabWishlist">Old Wishlist</a></small></li>
+        <li><small><a href="#tabExpired">Expired</a></small></li>
     </ul>
     <div id="tabRecent">
-        <p>Task1: The list below shows the recently created bug reports.
+        <p><small>Task 1: The list below shows the recently created bug reports.</small>
         </p>
         <ol>
             {% for b in recent_reports %}
@@ -51,9 +58,9 @@
         </ol>
     </div>
     <div id="tabUndecided">
-        <p>Task2: The list below shows the <code>confirmed</code> and
+        <p><small>Task 2: The list below shows the <code>confirmed</code> and
             <code>triaged</code> bug reports
-           without an <code>importance</code>.
+           without an <code>importance</code>.</small>
         </p>
         <ol>
             {% for b in undecided_reports %}
@@ -66,10 +73,10 @@
         </ol>
     </div>
     <div id="tabInconsistent">
-        <p>Task3: The list below shows bug reports which are inconsistent.
+        <p><small>Task 3: The list below shows bug reports which are inconsistent.
             Bugs with an assignee should be <code>In Progress</code>. Bugs
             which are <code>In Progress</code> but do not have an assignee
-            should be set back to <code>confirmed</code> (or <code>new</code>).
+            should be set back to <code>confirmed</code> (or <code>new</code>).</small>
         </p>
         <ol>
             {% for b in inconsistent_reports %}
@@ -82,10 +89,10 @@
         </ol>
     </div>
     <div id="tabFixCommitted">
-        <p>Task3 b: The list below shows bug reports in the state
+        <p><small>Task 3b: The list below shows bug reports in the state
             <code>Fix Committed</code>. Since the Mitaka cycle we use the
             direct release model, which means those bug reports should have
-            <code>Fix Released</code>.
+            <code>Fix Released</code>.</small>
         </p>
         <ol>
             {% for b in fix_committed %}
@@ -98,8 +105,8 @@
         </ol>
     </div>
     <div id="tabIncomplete">
-        <p>Task4 a: incomplete bugs with a response. The response should be
-            checked.
+        <p><small>Task 4a: incomplete bugs with a response. The response should be
+            checked.</small>
         </p>
         <ol>
             {% for b in incomplete_response %}
@@ -112,7 +119,7 @@
         </ol>
     </div>
     <div id="tabIncompleteStale">
-        <p>Task4 b: The list below shows bug reports which have the status incomplete for more than 30 days and are therefore potentially stale.
+        <p><small>Task 4b: The list below shows bug reports which have the status incomplete for more than 30 days and are therefore potentially stale.</small>
         </p>
         <ol>
             {% for b in stale_incomplete %}
@@ -125,9 +132,9 @@
         </ol>
     </div>
     <div id="tabInProgressStale">
-        <p>Task5: The list below shows bug reports which have the status
+        <p><small>Task 5: The list below shows bug reports which have the status
             <code>in progress</code> for more than 14 days but do not have open
-            reviews and are therefore potentially stale.
+            reviews and are therefore potentially stale.</small>
         </p>
         <ol>
             {% for b in stale_in_progress %}
@@ -140,7 +147,7 @@
         </ol>
     </div>
     <div id="tabPatch">
-        <p>Task6: The list below shows bug reports with a patch.
+        <p><small>Task 6: The list below shows bug reports with a patch.</small>
         </p>
         <ol>
             {% for b in patched_reports %}
@@ -153,7 +160,7 @@
         </ol>
     </div>
     <div id="tabWishlist">
-        <p>Task9: The list below shows old wishlist bug reports
+        <p><small>Task 9: The list below shows old wishlist bug reports</small>
         </p>
         <ol>
             {% for b in old_wishlist %}
@@ -192,7 +199,7 @@
         Provided by <a href="https://betacloud.io">Betacloud Solutions GmbH</a>.
     </p>
     <p>
-        This gets updated hourly. Last update: {{ last_update }}
+        This dashboard gets updated hourly. Last update: {{ last_update }}
     </p>
 </small>
 

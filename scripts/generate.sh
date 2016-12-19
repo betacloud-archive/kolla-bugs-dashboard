@@ -2,4 +2,4 @@
 set -x
 
 source venv/bin/activate
-python bugs_dashboard.py -p kolla
+python kolla_bugs_dashboard.py kolla kolla-ansible kolla-kubernetes

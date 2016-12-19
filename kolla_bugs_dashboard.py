@@ -2,7 +2,6 @@
 #
 # Creates a HTML file which can be used as a dashboard for
 # cleanup tasks of the bug management.
-#
 
 import argparse
 import datetime
@@ -15,15 +14,15 @@ from jinja2 import Environment, FileSystemLoader
 from launchpadlib.launchpad import Launchpad
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-p',
-                    '--project-name',
-                    required=True,
-                    dest='project_name',
-                    help='The LP project name.')
+parser.add_argument('projects',
+                    metavar='P',
+                    type=str,
+                    nargs='+',
+                    help='The Launchpad project names.')
 
 args = parser.parse_args()
 
-PROJECT_NAME = args.project_name
+PROJECTS = args.projects
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 DAYS_SINCE_INCOMPLETE = 30
@@ -61,31 +60,39 @@ class BugReport(object):
         return cmp(self.age, other.age)
 
 
-def get_project_client():
+def get_project_client(project_name):
     cache_dir = os.path.expanduser("~/.launchpadlib/cache/")
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir, 0o700)
-    launchpad = Launchpad.login_anonymously(PROJECT_NAME + '-bugs',
+    launchpad = Launchpad.login_anonymously(project_name + '-bugs',
                                             'production', cache_dir)
-    project = launchpad.projects[PROJECT_NAME]
+    project = launchpad.projects[project_name]
     return project
 
 
-def fill_supported_release_names():
-    LOG.info("filling supported release names...")
-    lp_project = get_project_client()
+def fill_supported_release_names(project_name):
+    LOG.info("filling supported release names for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     # master name
-    SUPPORTED_RELEASE_NAMES.append(lp_project.development_focus.name)
+    if lp_project.development_focus.name not in SUPPORTED_RELEASE_NAMES:
+        SUPPORTED_RELEASE_NAMES.append(lp_project.development_focus.name)
     for s in lp_project.series:
-        if s.active:
+        if s.active and s.name not in SUPPORTED_RELEASE_NAMES:
             # stable branch names
             SUPPORTED_RELEASE_NAMES.append(s.name)
     LOG.info("filled supported release names: %s", SUPPORTED_RELEASE_NAMES)
 
 
-def get_recent_reports():
-    LOG.info("getting recent reports...")
-    lp_project = get_project_client()
+def get_all(method):
+    result = []
+    for project_name in PROJECTS:
+        result = result + method(project_name)
+
+    return result
+
+def get_recent_reports(project_name):
+    LOG.info("getting recent reports for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     bug_tasks = lp_project.searchTasks(status=LP_OPEN_STATES,
                                        omit_duplicates=True,
                                        order_by="-datecreated")
@@ -100,13 +107,13 @@ def get_recent_reports():
                                             age=diff.days))
         else:
             break
-    LOG.info("got recent reports")
+    LOG.info("got recent reports for %s" % project_name)
     return recent_reports
 
 
-def get_undecided():
-    LOG.info("getting undecided reports...")
-    lp_project = get_project_client()
+def get_undecided(project_name):
+    LOG.info("getting undecided reports for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     bug_tasks = lp_project.searchTasks(status=["Confirmed", "Triaged"],
                                        importance="Undecided",
                                        omit_duplicates=True,
@@ -119,13 +126,13 @@ def get_undecided():
         undecided.append(BugReport(link=bug_task.web_link,
                                    title=bug_task.bug.title,
                                    age=diff.days))
-    LOG.info("got undecided reports")
+    LOG.info("got undecided reports for %s" % project_name)
     return undecided
 
 
-def get_fix_committed():
-    LOG.info("getting fix committed reports...")
-    lp_project = get_project_client()
+def get_fix_committed(project_name):
+    LOG.info("getting fix committed reports for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     bug_tasks = lp_project.searchTasks(status=["Fix Committed"],
                                        omit_duplicates=True)
     today = datetime.datetime.today()
@@ -136,13 +143,13 @@ def get_fix_committed():
         fix_committed.append(BugReport(link=bug_task.web_link,
                                        title=bug_task.bug.title,
                                        age=diff.days))
-    LOG.info("got fix committed reports")
+    LOG.info("got fix committed reports for %s" % project_name)
     return fix_committed
 
 
-def get_stale_incomplete():
-    LOG.info("getting stale incomplete reports...")
-    lp_project = get_project_client()
+def get_stale_incomplete(project_name):
+    LOG.info("getting stale incomplete reports for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     bug_tasks = lp_project.searchTasks(status=["Incomplete"],
                                        omit_duplicates=True)
     today = datetime.datetime.today()
@@ -155,13 +162,13 @@ def get_stale_incomplete():
         stale_bug_reports.append(BugReport(link=bug_task.web_link,
                                            title=bug_task.bug.title,
                                            age=diff.days))
-    LOG.info("got stale incomplete reports")
+    LOG.info("got stale incomplete reports for %s" % project_name)
     return stale_bug_reports
 
 
-def get_patched_reports():
-    LOG.info("getting patched reports...")
-    lp_project = get_project_client()
+def get_patched_reports(project_name):
+    LOG.info("getting patched reports for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     bug_tasks = lp_project.searchTasks(status=["New", "Confirmed", "Triaged"],
                                        has_patch=True,
                                        omit_duplicates=True)
@@ -173,13 +180,13 @@ def get_patched_reports():
         patched_reports.append(BugReport(link=bug_task.web_link,
                                          title=bug_task.bug.title,
                                          age=diff.days))
-    LOG.info("got patched reports")
+    LOG.info("got patched reports for %s" % project_name)
     return patched_reports
 
 
-def get_incomplete_response():
-    LOG.info("getting incomplete with response reports...")
-    lp_project = get_project_client()
+def get_incomplete_response(project_name):
+    LOG.info("getting incomplete with response reports for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     bug_tasks = lp_project.searchTasks(status=["Incomplete (with response)"],
                                        omit_duplicates=True)
     today = datetime.datetime.today()
@@ -190,15 +197,15 @@ def get_incomplete_response():
         incomplete_response.append(BugReport(link=bug_task.web_link,
                                              title=bug_task.bug.title,
                                              age=diff.days))
-    LOG.info("got incomplete with response reports")
+    LOG.info("got incomplete with response reports for %s" % project_name)
     return incomplete_response
 
 
-def get_inconsistent_reports():
-    LOG.info("getting inconsistent reports...")
+def get_inconsistent_reports(project_name):
+    LOG.info("getting inconsistent reports for %s..." % project_name)
     inconsistent = []
     today = datetime.datetime.today()
-    lp_project = get_project_client()
+    lp_project = get_project_client(project_name)
 
     bug_tasks = lp_project.searchTasks(status=["In Progress"],
                                        omit_duplicates=True)
@@ -219,13 +226,13 @@ def get_inconsistent_reports():
             inconsistent.append(BugReport(link=bug_task.web_link,
                                           title=bug_task.bug.title,
                                           age=diff.days))
-    LOG.info("got inconsistent reports")
+    LOG.info("got inconsistent reports for %s" % project_name)
     return inconsistent
 
 
-def get_old_wishlist():
-    LOG.info("getting old wishlist reports...")
-    lp_project = get_project_client()
+def get_old_wishlist(project_name):
+    LOG.info("getting old wishlist reports for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     bug_tasks = lp_project.searchTasks(status=["New", "Confirmed", "Triaged"],
                                        importance="Wishlist",
                                        omit_duplicates=True)
@@ -238,13 +245,13 @@ def get_old_wishlist():
             old_wishlist.append(BugReport(link=bug_task.web_link,
                                           title=bug_task.bug.title,
                                           age=diff.days))
-    LOG.info("got old wishlist reports")
+    LOG.info("got old wishlist reports for %s" % project_name)
     return old_wishlist
 
 
-def get_expired_reports():
-    LOG.info("getting potentially expired reports...")
-    lp_project = get_project_client()
+def get_expired_reports(project_name):
+    LOG.info("getting potentially expired reports for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     bug_tasks = lp_project.searchTasks(status=["New", "Confirmed", "Triaged"],
                                        omit_duplicates=True,
                                        order_by="datecreated")
@@ -270,13 +277,13 @@ def get_expired_reports():
         expired.append(BugReport(link=bug_task.web_link,
                                  title=bug_task.bug.title,
                                  age=diff.days))
-    LOG.info("got potentially expired reports.")
+    LOG.info("got potentially expired reports for %s" % project_name)
     return expired
 
 
-def get_stale_in_progress():
-    LOG.info("getting stale in progress reports...")
-    lp_project = get_project_client()
+def get_stale_in_progress(project_name):
+    LOG.info("getting stale in progress reports for %s..." % project_name)
+    lp_project = get_project_client(project_name)
     bug_tasks = lp_project.searchTasks(status=["In Progress"],
                                        omit_duplicates=True)
     today = datetime.datetime.today()
@@ -291,7 +298,7 @@ def get_stale_in_progress():
         stale_bug_reports.append(BugReport(link=bug_task.web_link,
                                            title=bug_task.bug.title,
                                            age=diff.days))
-    LOG.info("got stale in progress reports")
+    LOG.info("got stale in progress reports for %s" % project_name)
     return stale_bug_reports
 
 
@@ -309,24 +316,25 @@ def remove_first_line(invalid_json):
 
 def create_html_dashboard():
     LOG.info("creating html dashboard...")
-    fill_supported_release_names()
+    for project_name in PROJECTS:
+        fill_supported_release_names(project_name)
     d = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
     j2_env = Environment(loader=FileSystemLoader(THIS_DIR),
                          trim_blocks=True,
                          autoescape=True)
-    template = "bugs_dashboard_template.html"
+    template = "kolla_bugs_dashboard_template.html"
     rendered_html = j2_env.get_template(template).render(
         last_update=d,
-        stale_incomplete=sorted(get_stale_incomplete(), reverse=True),
-        stale_in_progress=sorted(get_stale_in_progress(), reverse=True),
-        recent_reports=sorted(get_recent_reports(), reverse=True),
-        undecided_reports=sorted(get_undecided(), reverse=True),
-        fix_committed=sorted(get_fix_committed(), reverse=True),
-        incomplete_response=sorted(get_incomplete_response(), reverse=True),
-        patched_reports=sorted(get_patched_reports(), reverse=True),
-        old_wishlist=sorted(get_old_wishlist(), reverse=True),
-        inconsistent_reports=sorted(get_inconsistent_reports(), reverse=True),
-        expired_reports=sorted(get_expired_reports(), reverse=True)
+        stale_incomplete=sorted(get_all(get_stale_incomplete), reverse=True),
+        stale_in_progress=sorted(get_all(get_stale_in_progress), reverse=True),
+        recent_reports=sorted(get_all(get_recent_reports), reverse=True),
+        undecided_reports=sorted(get_all(get_undecided), reverse=True),
+        fix_committed=sorted(get_all(get_fix_committed), reverse=True),
+        incomplete_response=sorted(get_all(get_incomplete_response), reverse=True),
+        patched_reports=sorted(get_all(get_patched_reports), reverse=True),
+        old_wishlist=sorted(get_all(get_old_wishlist), reverse=True),
+        inconsistent_reports=sorted(get_all(get_inconsistent_reports), reverse=True),
+        expired_reports=sorted(get_all(get_expired_reports), reverse=True)
     )
     with open("bugs-dashboard.html", "wb") as fh:
         fh.write(rendered_html)

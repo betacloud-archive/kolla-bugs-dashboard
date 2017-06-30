@@ -322,7 +322,7 @@ def create_html_dashboard():
     j2_env = Environment(loader=FileSystemLoader(THIS_DIR),
                          trim_blocks=True,
                          autoescape=True)
-    template = "kolla_bugs_dashboard_template.html"
+    template = "templates/kolla_bugs_dashboard.html.j2"
     rendered_html = j2_env.get_template(template).render(
         last_update=d,
         stale_incomplete=sorted(get_all(get_stale_incomplete), reverse=True),
